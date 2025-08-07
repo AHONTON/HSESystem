@@ -1,0 +1,73 @@
+{
+  "incidents": [
+    {
+      "id": 1,
+      "type": "accident",
+      "title": "Chute dans l'atelier",
+      "description": "Chute d'un technicien suite à un sol glissant",
+      "location": "Atelier A - Zone 3",
+      "reportedBy": 2,
+      "date": "2024-01-15",
+      "severity": "moyen",
+      "status": "en_cours",
+      "actions": "Nettoyage immédiat, pose de signalisation"
+    },
+    {
+      "id": 2,
+      "type": "incendie",
+      "title": "Début d'incendie électrique",
+      "description": "Court-circuit sur tableau électrique",
+      "location": "Bureau technique",
+      "reportedBy": 1,
+      "date": "2024-01-10",
+      "severity": "élevé",
+      "status": "résolu",
+      "actions": "Intervention électricien, remplacement tableau"
+    },
+    {
+      "id": 3,
+      "type": "environnement",
+      "title": "Fuite d'huile",
+      "description": "Fuite d'huile hydraulique sur machine",
+      "location": "Atelier B - Machine 5",
+      "reportedBy": 4,
+      "date": "2024-01-12",
+      "severity": "faible",
+      "status": "résolu",
+      "actions": "Nettoyage, réparation joint"
+    }
+  ],
+  "activities": [
+    {
+      "id": 1,
+      "type": "sensibilisation",
+      "title": "Sensibilisation port EPI",
+      "description": "Session de sensibilisation sur l'importance du port des EPI",
+      "date": "2024-01-08",
+      "participants": [2, 3, 4],
+      "duration": 120,
+      "instructor": 1
+    },
+    {
+      "id": 2,
+      "type": "inspection",
+      "title": "Inspection mensuelle atelier A",
+      "description": "Inspection de sécurité mensuelle de l'atelier A",
+      "date": "2024-01-05",
+      "participants": [1, 2],
+      "duration": 180,
+      "findings": "2 non-conformités mineures détectées"
+    },
+    {
+      "id": 3,
+      "type": "formation",
+      "title": "Formation premiers secours",
+      "description": "Formation aux gestes de premiers secours",
+      "date": "2024-01-03",
+      "participants": [3, 4],
+      "duration": 480,
+      "instructor": 1,
+      "certification": true
+    }
+  ]
+}

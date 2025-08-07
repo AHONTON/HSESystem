@@ -1,0 +1,52 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Admin HSE",
+      "email": "admin@hse.com",
+      "password": "admin123",
+      "role": "admin",
+      "phone": "+33 1 23 45 67 89",
+      "position": "Responsable HSE",
+      "department": "Sécurité",
+      "joinDate": "2020-01-15",
+      "avatar": "/placeholder.svg?height=40&width=40"
+    },
+    {
+      "id": 2,
+      "name": "Marie Dupont",
+      "email": "marie.dupont@hse.com",
+      "password": "marie123",
+      "role": "superviseur",
+      "phone": "+33 1 23 45 67 90",
+      "position": "Superviseur Sécurité",
+      "department": "Production",
+      "joinDate": "2021-03-10",
+      "avatar": "/placeholder.svg?height=40&width=40"
+    },
+    {
+      "id": 3,
+      "name": "Jean Martin",
+      "email": "jean.martin@hse.com",
+      "password": "jean123",
+      "role": "technicien",
+      "phone": "+33 1 23 45 67 91",
+      "position": "Technicien HSE",
+      "department": "Maintenance",
+      "joinDate": "2022-06-20",
+      "avatar": "/placeholder.svg?height=40&width=40"
+    },
+    {
+      "id": 4,
+      "name": "Sophie Bernard",
+      "email": "sophie.bernard@hse.com",
+      "password": "sophie123",
+      "role": "technicien",
+      "phone": "+33 1 23 45 67 92",
+      "position": "Technicienne Environnement",
+      "department": "Environnement",
+      "joinDate": "2022-09-15",
+      "avatar": "/placeholder.svg?height=40&width=40"
+    }
+  ]
+}
