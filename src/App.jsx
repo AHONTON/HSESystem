@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider } from "./components/contexts/AuthContext";
 import { ThemeProvider } from "./components/contexts/ThemeContext";
+import { LangProvider } from './components/contexts/LangContext'
 import { NotificationProvider } from "./components/contexts/NotificationContext";
 import Layout from "./components/Layout/Layout";
 import AuthPage from "./pages/AuthPage";
@@ -25,6 +26,7 @@ function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider>
+        <LangProvider>
         <AuthProvider>
           <NotificationProvider>
             <Router>
@@ -67,6 +69,7 @@ function App() {
             </Router>
           </NotificationProvider>
         </AuthProvider>
+        </LangProvider>
       </ThemeProvider>
     </ErrorBoundary>
   );
