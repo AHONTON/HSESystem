@@ -10,7 +10,7 @@ import {
   Settings,
   CalendarPlus,
 } from "lucide-react";
-
+import { useNavigate } from "react-router-dom";
 import { useTheme } from "../contexts/ThemeContext";
 import { useLang } from "../contexts/LangContext";
 
@@ -18,9 +18,10 @@ import Parametre from "./Parametre";
 import CreerEvenement from "./CreerEvenement";
 import Profil from "./Profil";
 
-import SearchBar from "./SearchBar";
+import UserSearchContainer from "./UserSearchContainer";
 
 const Header = () => {
+  const navigate = useNavigate();
   const { isDark, toggleTheme } = useTheme();
   const { lang, toggleLang } = useLang();
   const [searchTerm, setSearchTerm] = useState("");
@@ -70,6 +71,9 @@ const Header = () => {
 
   const logout = () => alert("Déconnexion");
 
+  const handleSelectUser = (user) => {
+    navigate(`/users/${user.id}`); // navigation vers le profil
+  };
   return (
     <>
       <header
@@ -103,11 +107,17 @@ const Header = () => {
         </motion.div>
 
         {/* Recherche */}
-        <SearchBar
-          placeholder={lang === "fr" ? "Rechercher..." : "Search..."}
-          onSearch={setSearchTerm}
-          isDark={isDark}
-        />
+        <div className="flex-1 px-8">
+          <UserSearchContainer
+            onSelectUser={handleSelectUser} // fonction de navigation
+            isDark={isDark}
+            placeholder={
+              lang === "fr"
+                ? "Rechercher un utilisateur..."
+                : "Search for a user..."
+            }
+          />
+        </div>
 
         {/* Actions */}
         <motion.div
