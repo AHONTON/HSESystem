@@ -1,17 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, Edit, Trash2, Eye, FileText, FileSpreadsheet, Users as UsersIcon } from "lucide-react";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
-import * as XLSX from "xlsx";
-import { FaFileWord } from "react-icons/fa";
-import { Document, Packer, Paragraph, Table, TableCell, TableRow, TextRun } from "docx";
-import { saveAs } from "file-saver";
+import { Plus, Search, Edit, Trash2, Eye, Users as UsersIcon } from "lucide-react";
 import Card from "../components/UI/Card";
 import Modal from "../components/UI/Modal";
 import usersData from "../data/users.json";
 import SwalHelper from "../utils/SwalHelper";
 import EquipmentForm from "../components/UI/EquipmentForm";
+import NewUserForm from "../components/UI/NewUserForm";
+import ExportButtons from "../components/UI/ExportButtons";
 
 const UserForm = ({ user, mode, onSave, onClose }) => {
   const [formData, setFormData] = useState(
@@ -20,27 +16,33 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
       email: "",
       role: "technicien",
       phone: "",
-      position: "",
+      poste: "",
       department: "",
     }
   );
 
+  const [errors, setErrors] = useState({});
+
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.name.trim()) newErrors.name = "Le nom complet est requis";
+    if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Un email valide est requis";
+    if (formData.phone && !/^\+?\d{10,15}$/.test(formData.phone.replace(/\s/g, ""))) {
+      newErrors.phone = "Le numéro de téléphone doit contenir entre 10 et 15 chiffres";
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (mode === "add") {
-      const newUser = {
-        ...formData,
-        id: Date.now(),
-        joinDate: new Date().toISOString().split("T")[0],
-        avatar: `/placeholder.svg?height=40&width=40&query=${encodeURIComponent(formData.name)}`,
-      };
-      onSave(newUser);
-      SwalHelper.success("Ajouté !", "L'utilisateur a été ajouté avec succès.");
-    } else if (mode === "edit") {
+    if (!validateForm()) return;
+
+    if (mode === "edit") {
       onSave({ ...user, ...formData });
       SwalHelper.success("Modifié !", "L'utilisateur a été modifié avec succès.");
+      onClose();
     }
-    onClose();
   };
 
   if (mode === "view") {
@@ -53,12 +55,8 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
             className="w-16 h-16 rounded-full"
           />
           <div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-              {user.name}
-            </h3>
-            <span className={getRoleBadge(user.role)}>
-              {getRoleLabel(user.role)}
-            </span>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{user.name}</h3>
+            <span className={getRoleBadge(user.role)}>{getRoleLabel(user.role)}</span>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -68,11 +66,11 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Téléphone</label>
-            <p className="mt-1 text-sm text-gray-900 dark:text-white">{user.phone}</p>
+            <p className="mt-1 text-sm text-gray-900 dark:text-white">{user.phone || "-"}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Poste</label>
-            <p className="mt-1 text-sm text-gray-900 dark:text-white">{user.position}</p>
+            <p className="mt-1 text-sm text-gray-900 dark:text-white">{user.poste || "-"}</p>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Département</label>
@@ -84,6 +82,15 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
               {new Date(user.joinDate).toLocaleDateString()}
             </p>
           </div>
+        </div>
+        <div className="flex justify-end pt-4">
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
+          >
+            Fermer
+          </button>
         </div>
       </div>
     );
@@ -97,20 +104,22 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
           <input
             type="text"
             required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.name ? "border-red-500" : ""}`}
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />
+          {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
           <input
             type="email"
             required
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.email ? "border-red-500" : ""}`}
             value={formData.email}
             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           />
+          {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -130,10 +139,11 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Téléphone</label>
           <input
             type="tel"
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.phone ? "border-red-500" : ""}`}
             value={formData.phone}
             onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
           />
+          {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -142,8 +152,8 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
           <input
             type="text"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-            value={formData.position}
-            onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+            value={formData.poste}
+            onChange={(e) => setFormData({ ...formData, poste: e.target.value })}
           />
         </div>
         <div>
@@ -168,11 +178,29 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
           type="submit"
           className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
         >
-          {mode === "add" ? "Ajouter" : "Modifier"}
+          Modifier
         </button>
       </div>
     </form>
   );
+};
+
+const getRoleBadge = (role) => {
+  const badges = {
+    admin: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800",
+    superviseur: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800",
+    technicien: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800",
+  };
+  return badges[role] || "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800";
+};
+
+const getRoleLabel = (role) => {
+  const labels = {
+    admin: "Administrateur",
+    superviseur: "Superviseur",
+    technicien: "Technicien",
+  };
+  return labels[role] || role;
 };
 
 const Users = () => {
@@ -185,23 +213,29 @@ const Users = () => {
   const [showEquipmentModal, setShowEquipmentModal] = useState(false);
   const [userForEquipment, setUserForEquipment] = useState(null);
 
-  const getRoleBadge = (role) => {
-    const badges = {
-      admin: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800",
-      superviseur: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800",
-      technicien: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800",
-    };
-    return badges[role] || "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800";
-  };
+  const modalRef = useRef(null);
+  const equipmentModalRef = useRef(null);
 
-  const getRoleLabel = (role) => {
-    const labels = {
-      admin: "Administrateur",
-      superviseur: "Superviseur",
-      technicien: "Technicien",
+  // Gestion des clics en dehors pour fermer les modales
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showModal && modalRef.current && !modalRef.current.contains(event.target)) {
+        setShowModal(false);
+      }
+      if (
+        showEquipmentModal &&
+        equipmentModalRef.current &&
+        !equipmentModalRef.current.contains(event.target)
+      ) {
+        setShowEquipmentModal(false);
+      }
     };
-    return labels[role] || role;
-  };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [showModal, showEquipmentModal]);
 
   const filteredUsers = userList.filter((user) => {
     const matchesSearch =
@@ -217,7 +251,6 @@ const Users = () => {
   };
 
   const handleAddUser = () => {
-    setSelectedUser(null);
     setModalMode("add");
     setShowModal(true);
   };
@@ -256,93 +289,6 @@ const Users = () => {
     setShowModal(false);
   };
 
-  const exportToPDF = () => {
-    try {
-      const doc = new jsPDF();
-      const tableColumn = ["Nom", "Email", "Rôle", "Département", "Date d'embauche"];
-      const tableRows = userList.map((user) => [
-        user.name,
-        user.email,
-        getRoleLabel(user.role),
-        user.department,
-        new Date(user.joinDate).toLocaleDateString(),
-      ]);
-      doc.autoTable({
-        head: [tableColumn],
-        body: tableRows,
-        styles: { fontSize: 8 },
-        margin: { top: 20 },
-      });
-      doc.save("utilisateurs.pdf");
-    } catch (error) {
-      SwalHelper.error("Erreur", "Échec de l'exportation PDF");
-    }
-  };
-
-  const exportToExcel = () => {
-    try {
-      const data = userList.map((user) => ({
-        Nom: user.name,
-        Email: user.email,
-        Rôle: getRoleLabel(user.role),
-        Département: user.department,
-        "Date d'embauche": new Date(user.joinDate).toLocaleDateString(),
-      }));
-      const worksheet = XLSX.utils.json_to_sheet(data);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Utilisateurs");
-      XLSX.writeFile(workbook, "utilisateurs.xlsx");
-    } catch (error) {
-      SwalHelper.error("Erreur", "Échec de l'exportation Excel");
-    }
-  };
-
-  const exportToWord = async () => {
-    try {
-      const rows = [
-        new TableRow({
-          children: ["Nom", "Email", "Rôle", "Département", "Date d'embauche"].map(
-            (header) => new TableCell({
-              children: [new Paragraph({ children: [new TextRun({ text: header, bold: true })] })],
-            })
-          ),
-        }),
-        ...userList.map(
-          (user) => new TableRow({
-            children: [
-              user.name,
-              user.email,
-              getRoleLabel(user.role),
-              user.department,
-              new Date(user.joinDate).toLocaleDateString(),
-            ].map(
-              (text) => new TableCell({
-                children: [new Paragraph({ children: [new TextRun(text)] })],
-              })
-            ),
-          })
-        ),
-      ];
-
-      const doc = new Document({
-        sections: [{
-          children: [
-            new Paragraph({
-              children: [new TextRun({ text: "Liste des Utilisateurs", size: 24, bold: true })],
-              spacing: { after: 300 },
-            }),
-            new Table({ rows, width: { size: 100, type: 'pct' } }),
-          ],
-        }],
-      });
-
-      const blob = await Packer.toBlob(doc);
-      saveAs(blob, "utilisateurs.docx");
-    } catch (error) {
-      SwalHelper.error("Erreur", "Échec de l'exportation Word");
-    }
-  };
-
   return (
     <div className="space-y-6 p-6">
       <motion.div
@@ -370,7 +316,10 @@ const Users = () => {
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
           <div className="flex items-center space-x-2 w-full sm:w-auto">
             <div className="relative flex-1 sm:flex-none sm:w-64">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+              <Search
+                className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+                size={20}
+              />
               <input
                 type="text"
                 placeholder="Rechercher un utilisateur..."
@@ -390,29 +339,7 @@ const Users = () => {
               <option value="technicien">Technicien</option>
             </select>
           </div>
-          <div className="flex space-x-2">
-            <button
-              className="flex items-center px-3 py-2 space-x-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700"
-              onClick={exportToPDF}
-            >
-              <FileText size={18} />
-              <span>PDF</span>
-            </button>
-            <button
-              className="flex items-center px-3 py-2 space-x-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
-              onClick={exportToExcel}
-            >
-              <FileSpreadsheet size={18} />
-              <span>Excel</span>
-            </button>
-            <button
-              className="flex items-center px-3 py-2 space-x-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
-              onClick={exportToWord}
-            >
-              <FaFileWord size={18} />
-              <span>Word</span>
-            </button>
-          </div>
+          <ExportButtons userList={userList} getRoleLabel={getRoleLabel} />
         </div>
       </Card>
 
@@ -421,11 +348,21 @@ const Users = () => {
           <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
             <thead className="bg-gray-50 dark:bg-gray-800">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Utilisateur</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Rôle</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Département</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Date d'embauche</th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Actions</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                  Utilisateur
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                  Rôle
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                  Département
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                  Date d'embauche
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-900 dark:divide-gray-700">
@@ -447,7 +384,9 @@ const Users = () => {
                           alt={user.name}
                         />
                         <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900 dark:text-white">{user.name}</div>
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {user.name}
+                          </div>
                           <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
                         </div>
                       </div>
@@ -455,7 +394,9 @@ const Users = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={getRoleBadge(user.role)}>{getRoleLabel(user.role)}</span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">{user.department}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
+                      {user.department}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {new Date(user.joinDate).toLocaleDateString()}
                     </td>
@@ -508,7 +449,9 @@ const Users = () => {
         {filteredUsers.length === 0 && (
           <div className="py-12 text-center">
             <UsersIcon className="w-12 h-12 mx-auto text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">Aucun utilisateur trouvé</h3>
+            <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
+              Aucun utilisateur trouvé
+            </h3>
             <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
               Aucun utilisateur ne correspond à vos critères de recherche.
             </p>
@@ -528,12 +471,18 @@ const Users = () => {
         }
         size="lg"
       >
-        <UserForm
-          user={selectedUser}
-          mode={modalMode}
-          onSave={handleSaveUser}
-          onClose={() => setShowModal(false)}
-        />
+        <div ref={modalRef}>
+          {modalMode === "add" ? (
+            <NewUserForm onSave={handleSaveUser} onClose={() => setShowModal(false)} />
+          ) : (
+            <UserForm
+              user={selectedUser}
+              mode={modalMode}
+              onSave={handleSaveUser}
+              onClose={() => setShowModal(false)}
+            />
+          )}
+        </div>
       </Modal>
 
       <Modal
@@ -542,10 +491,9 @@ const Users = () => {
         title={`Équipements de ${userForEquipment?.name || ""}`}
         size="lg"
       >
-        <EquipmentForm
-          user={userForEquipment}
-          onClose={() => setShowEquipmentModal(false)}
-        />
+        <div ref={equipmentModalRef}>
+          <EquipmentForm user={userForEquipment} onClose={() => setShowEquipmentModal(false)} />
+        </div>
       </Modal>
     </div>
   );
