@@ -532,16 +532,16 @@ const EquipmentForm = ({
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="p-1"
+        className="p-0"
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-1xl font-bold text-gray-800 dark:text-white">
-            Gestion des Équipements de Protection
+            BIONS PARTHNERSHIP | Gestion des Équipements
           </h2>
           <button
             onClick={onClose}
-            className="p-2 text-gray-500 transition-colors duration-200 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            className="p-1 text-white bg-red-600"
             type="button"
             disabled={isLoading}
             aria-label="Fermer"
@@ -559,7 +559,7 @@ const EquipmentForm = ({
             </h3>
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
               <FormInput
-                label="Poste de travail"
+                label="Poste"
                 type="text"
                 name="poste"
                 value={form.poste}
