@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Plus, Search, Edit, Trash2, Eye, Users as UsersIcon } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Eye,
+  Users as UsersIcon,
+} from "lucide-react";
 import Card from "../components/UI/Card";
 import Modal from "../components/UI/Modal";
 import usersData from "../data/users.json";
@@ -26,9 +33,14 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Le nom complet est requis";
-    if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email)) newErrors.email = "Un email valide est requis";
-    if (formData.phone && !/^\+?\d{10,15}$/.test(formData.phone.replace(/\s/g, ""))) {
-      newErrors.phone = "Le numéro de téléphone doit contenir entre 10 et 15 chiffres";
+    if (!formData.email.trim() || !/\S+@\S+\.\S+/.test(formData.email))
+      newErrors.email = "Un email valide est requis";
+    if (
+      formData.phone &&
+      !/^\+?\d{10,15}$/.test(formData.phone.replace(/\s/g, ""))
+    ) {
+      newErrors.phone =
+        "Le numéro de téléphone doit contenir entre 10 et 15 chiffres";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -40,7 +52,10 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
 
     if (mode === "edit") {
       onSave({ ...user, ...formData });
-      SwalHelper.success("Modifié !", "L'utilisateur a été modifié avec succès.");
+      SwalHelper.success(
+        "Modifié !",
+        "L'utilisateur a été modifié avec succès."
+      );
       onClose();
     }
   };
@@ -55,29 +70,51 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
             className="w-16 h-16 rounded-full"
           />
           <div>
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">{user.name}</h3>
-            <span className={getRoleBadge(user.role)}>{getRoleLabel(user.role)}</span>
+            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+              {user.name}
+            </h3>
+            <span className={getRoleBadge(user.role)}>
+              {getRoleLabel(user.role)}
+            </span>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
-            <p className="mt-1 text-sm text-gray-900 dark:text-white">{user.email}</p>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Email
+            </label>
+            <p className="mt-1 text-sm text-gray-900 dark:text-white">
+              {user.email}
+            </p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Téléphone</label>
-            <p className="mt-1 text-sm text-gray-900 dark:text-white">{user.phone || "-"}</p>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Téléphone
+            </label>
+            <p className="mt-1 text-sm text-gray-900 dark:text-white">
+              {user.phone || "-"}
+            </p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Poste</label>
-            <p className="mt-1 text-sm text-gray-900 dark:text-white">{user.poste || "-"}</p>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Poste
+            </label>
+            <p className="mt-1 text-sm text-gray-900 dark:text-white">
+              {user.poste || "-"}
+            </p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Département</label>
-            <p className="mt-1 text-sm text-gray-900 dark:text-white">{user.department}</p>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Département
+            </label>
+            <p className="mt-1 text-sm text-gray-900 dark:text-white">
+              {user.department}
+            </p>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Date d'embauche</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Date d'embauche
+            </label>
             <p className="mt-1 text-sm text-gray-900 dark:text-white">
               {new Date(user.joinDate).toLocaleDateString()}
             </p>
@@ -100,31 +137,47 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nom complet</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Nom complet
+          </label>
           <input
             type="text"
             required
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.name ? "border-red-500" : ""}`}
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+              errors.name ? "border-red-500" : ""
+            }`}
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />
-          {errors.name && <p className="mt-1 text-sm text-red-500">{errors.name}</p>}
+          {errors.name && (
+            <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+          )}
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Email
+          </label>
           <input
             type="email"
             required
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.email ? "border-red-500" : ""}`}
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+              errors.email ? "border-red-500" : ""
+            }`}
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, email: e.target.value })
+            }
           />
-          {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
+          {errors.email && (
+            <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+          )}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Rôle</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Rôle
+          </label>
           <select
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             value={formData.role}
@@ -136,33 +189,49 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Téléphone</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Téléphone
+          </label>
           <input
             type="tel"
-            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${errors.phone ? "border-red-500" : ""}`}
+            className={`mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white ${
+              errors.phone ? "border-red-500" : ""
+            }`}
             value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, phone: e.target.value })
+            }
           />
-          {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
+          {errors.phone && (
+            <p className="mt-1 text-sm text-red-500">{errors.phone}</p>
+          )}
         </div>
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Poste</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Poste
+          </label>
           <input
             type="text"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             value={formData.poste}
-            onChange={(e) => setFormData({ ...formData, poste: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, poste: e.target.value })
+            }
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Département</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Département
+          </label>
           <input
             type="text"
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             value={formData.department}
-            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, department: e.target.value })
+            }
           />
         </div>
       </div>
@@ -187,11 +256,17 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
 
 const getRoleBadge = (role) => {
   const badges = {
-    admin: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800",
-    superviseur: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800",
-    technicien: "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800",
+    admin:
+      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800",
+    superviseur:
+      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800",
+    technicien:
+      "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800",
   };
-  return badges[role] || "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800";
+  return (
+    badges[role] ||
+    "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800"
+  );
 };
 
 const getRoleLabel = (role) => {
@@ -219,7 +294,11 @@ const Users = () => {
   // Gestion des clics en dehors pour fermer les modales
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (showModal && modalRef.current && !modalRef.current.contains(event.target)) {
+      if (
+        showModal &&
+        modalRef.current &&
+        !modalRef.current.contains(event.target)
+      ) {
         setShowModal(false);
       }
       if (
@@ -284,7 +363,9 @@ const Users = () => {
     if (modalMode === "add") {
       setUserList((prev) => [...prev, userData]);
     } else if (modalMode === "edit") {
-      setUserList((prev) => prev.map((u) => (u.id === userData.id ? userData : u)));
+      setUserList((prev) =>
+        prev.map((u) => (u.id === userData.id ? userData : u))
+      );
     }
     setShowModal(false);
   };
@@ -298,8 +379,12 @@ const Users = () => {
         transition={{ duration: 0.5 }}
       >
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Gestion des Utilisateurs</h1>
-          <p className="mt-1 text-gray-600 dark:text-gray-400">Gérez les comptes utilisateurs et leurs permissions</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Gestion des Utilisateurs
+          </h1>
+          <p className="mt-1 text-gray-600 dark:text-gray-400">
+            Gérez les comptes utilisateurs et leurs permissions
+          </p>
         </div>
         <motion.button
           onClick={handleAddUser}
@@ -387,12 +472,16 @@ const Users = () => {
                           <div className="text-sm font-medium text-gray-900 dark:text-white">
                             {user.name}
                           </div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">{user.email}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            {user.email}
+                          </div>
                         </div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={getRoleBadge(user.role)}>{getRoleLabel(user.role)}</span>
+                      <span className={getRoleBadge(user.role)}>
+                        {getRoleLabel(user.role)}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
                       {user.department}
@@ -473,7 +562,10 @@ const Users = () => {
       >
         <div ref={modalRef}>
           {modalMode === "add" ? (
-            <NewUserForm onSave={handleSaveUser} onClose={() => setShowModal(false)} />
+            <NewUserForm
+              onSave={handleSaveUser}
+              onClose={() => setShowModal(false)}
+            />
           ) : (
             <UserForm
               user={selectedUser}
@@ -492,7 +584,10 @@ const Users = () => {
         size="lg"
       >
         <div ref={equipmentModalRef}>
-          <EquipmentForm user={userForEquipment} onClose={() => setShowEquipmentModal(false)} />
+          <EquipmentForm
+            user={userForEquipment}
+            onClose={() => setShowEquipmentModal(false)}
+          />
         </div>
       </Modal>
     </div>

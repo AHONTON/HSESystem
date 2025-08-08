@@ -26,6 +26,7 @@ const Sidebar = () => {
   const menuItems = [
     { path: "/", icon: LayoutDashboard, label: "Dashboard" },
     { path: "/users", icon: Users, label: "Utilisateurs" },
+    { path: "/equipement", icon: LifeBuoy, label: "Equipements" },
     { path: "/technicians", icon: HardHat, label: "Techniciens & EPI" },
     { path: "/epi-stock", icon: Package, label: "Stock EPI" },
     { path: "/incidents", icon: AlertTriangle, label: "Incidents & Activités" },
@@ -34,7 +35,6 @@ const Sidebar = () => {
     { path: "/training", icon: GraduationCap, label: "Formations" },
 
     // ➕ Nouveaux menus
-    { path: "/support", icon: LifeBuoy, label: "Support" },
     { path: "/help", icon: HelpCircle, label: "Aide" },
     { path: "/messages", icon: MessageCircle, label: "Messages" },
   ];

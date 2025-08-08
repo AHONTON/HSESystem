@@ -13,6 +13,7 @@ import Layout from "./components/Layout/Layout";
 import AuthPage from "./pages/AuthPage";
 import Dashboard from "./pages/Dashboard";
 import Users from "./pages/Users";
+import Equipement from "./pages/Equipement";
 import Technicians from "./pages/Technicians";
 import EPIStock from "./pages/EPIStock";
 import Incidents from "./pages/Incidents";
@@ -55,6 +56,7 @@ function App() {
                 >
                   <Route index element={<Dashboard />} />
                   <Route path="users" element={<Users />} />
+                  <Route path="equipement" element={<Equipement />} />
                   <Route path="technicians" element={<Technicians />} />
                   <Route path="epi-stock" element={<EPIStock />} />
                   <Route path="incidents" element={<Incidents />} />
