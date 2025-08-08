@@ -602,7 +602,7 @@ const EquipmentForm = ({
               type="button"
               onClick={onClose}
               disabled={isLoading}
-              className="px-8 py-3 text-gray-700 transition-all duration-200 bg-gray-200 rounded-lg hover:bg-gray-300 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-3 text-white transition-all duration-200 bg-red-800 rounded-lg disabled:cursor-not-allowed"
             >
               Annuler
             </button>
@@ -611,16 +611,16 @@ const EquipmentForm = ({
               whileTap={isLoading ? {} : { scale: 0.98 }}
               type="submit"
               disabled={isLoading}
-              className="flex items-center px-8 py-3 space-x-2 font-semibold text-white transition-all duration-200 bg-blue-600 rounded-lg hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center px-8 py-3 space-x-2 font-semibold text-white transition-all duration-200 bg-green-900 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <>
-                  <div className="w-5 h-5 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
+                  <div className="w-3 h-3 border-2 border-white rounded-full border-t-transparent animate-spin"></div>
                   <span>Enregistrement...</span>
                 </>
               ) : (
                 <>
-                  <Save size={20} />
+                  <Save size={15} />
                   <span>Enregistrer</span>
                 </>
               )}
