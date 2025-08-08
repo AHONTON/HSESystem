@@ -11,6 +11,14 @@ import PropTypes from "prop-types";
 import { X, Save } from "lucide-react";
 import SwalHelper from "../../utils/SwalHelper";
 
+// Configuration de l'instance Axios avec une base URL
+const api = axios.create({
+  baseURL: "/api",
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
 // Liste des équipements configurable
 const defaultEquipmentList = [
   "Casque",
@@ -170,7 +178,6 @@ const EquipmentForm = ({
   const [form, setForm] = useState(getInitialFormState(equipmentList));
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-
   const notifiedRef = useRef({ Jmoins1: new Set(), JourJ: new Set() });
 
   // Demande de permission pour les notifications
@@ -180,28 +187,102 @@ const EquipmentForm = ({
     }
   }, []);
 
-  // Chargement des données via API
-  useEffect(() => {
+  // Fonction pour récupérer les données d'un utilisateur spécifique
+  const fetchUserEquipment = useCallback(async () => {
     if (!userId) return;
 
-    const fetchData = async () => {
-      setIsLoading(true);
-      try {
-        const res = await axios.get(`/api/utilisateurs/${userId}/equipements`);
-        setForm(res.data || getInitialFormState(equipmentList));
-        notifiedRef.current.Jmoins1.clear();
-        notifiedRef.current.JourJ.clear();
-      } catch (error) {
-        console.error("Erreur lors du chargement:", error);
-        SwalHelper.error("Erreur", "Impossible de charger les équipements");
-        setForm(getInitialFormState(equipmentList));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
+    setIsLoading(true);
+    try {
+      // GET: Récupère les données des équipements pour un utilisateur spécifique
+      const response = await api.get(`/utilisateurs/${userId}/equipements`);
+      setForm(response.data || getInitialFormState(equipmentList));
+      notifiedRef.current.Jmoins1.clear();
+      notifiedRef.current.JourJ.clear();
+    } catch (error) {
+      console.error("Erreur lors du chargement des données:", error);
+      SwalHelper.error("Erreur", "Impossible de charger les équipements");
+      setForm(getInitialFormState(equipmentList));
+    } finally {
+      setIsLoading(false);
+    }
   }, [userId, equipmentList]);
+
+  // Charger les données au montage du composant
+  useEffect(() => {
+    fetchUserEquipment();
+  }, [fetchUserEquipment]);
+
+  // Fonction pour créer un nouvel enregistrement d'équipement
+  const createEquipment = useCallback(
+    async (equipmentData) => {
+      try {
+        // POST: Crée un nouvel enregistrement d'équipement pour l'utilisateur
+        await api.post(`/utilisateurs/${userId}/equipements`, equipmentData);
+        await SwalHelper.success(
+          "Succès",
+          "Les équipements ont été créés avec succès."
+        );
+        return true;
+      } catch (error) {
+        console.error("Erreur lors de la création:", error);
+        await SwalHelper.error(
+          "Erreur",
+          error.response?.data?.message ||
+            "Une erreur est survenue lors de la création."
+        );
+        return false;
+      }
+    },
+    [userId]
+  );
+
+  // Fonction pour mettre à jour un enregistrement d'équipement existant
+  const updateEquipment = useCallback(
+    async (equipmentData) => {
+      try {
+        // PUT: Met à jour les données des équipements pour l'utilisateur
+        await api.put(`/utilisateurs/${userId}/equipements`, equipmentData);
+        await SwalHelper.success(
+          "Succès",
+          "Les équipements ont été mis à jour avec succès."
+        );
+        return true;
+      } catch (error) {
+        console.error("Erreur lors de la mise à jour:", error);
+        await SwalHelper.error(
+          "Erreur",
+          error.response?.data?.message ||
+            "Une erreur est survenue lors de la mise à jour."
+        );
+        return false;
+      }
+    },
+    [userId]
+  );
+
+  // Fonction pour supprimer un enregistrement d'équipement
+  const deleteEquipment = useCallback(
+    async (equipmentId) => {
+      try {
+        // DELETE: Supprime un équipement spécifique
+        await api.delete(`/utilisateurs/${userId}/equipements/${equipmentId}`);
+        await SwalHelper.success(
+          "Succès",
+          "L'équipement a été supprimé avec succès."
+        );
+        return true;
+      } catch (error) {
+        console.error("Erreur lors de la suppression:", error);
+        await SwalHelper.error(
+          "Erreur",
+          error.response?.data?.message ||
+            "Une erreur est survenue lors de la suppression."
+        );
+        return false;
+      }
+    },
+    [userId]
+  );
 
   // Déclencheur de notification
   const triggerBrowserNotification = useCallback((title, body) => {
@@ -400,14 +481,18 @@ const EquipmentForm = ({
         return;
       }
 
+      setIsLoading(true);
       try {
-        setIsLoading(true);
         await SwalHelper.loading("Enregistrement...", "Veuillez patienter");
-        await axios.post(`/api/utilisateurs/${userId}/equipements`, form);
-        await SwalHelper.success(
-          "Succès",
-          "Les équipements ont été enregistrés avec succès."
-        );
+        // Vérifie si des données existent déjà pour déterminer si c'est une création ou une mise à jour
+        const response = await api.get(`/utilisateurs/${userId}/equipements`);
+        if (response.data) {
+          // Si des données existent, on met à jour
+          await updateEquipment(form);
+        } else {
+          // Sinon, on crée un nouvel enregistrement
+          await createEquipment(form);
+        }
         onClose();
       } catch (err) {
         console.error("Erreur lors de l'enregistrement:", err);
@@ -420,7 +505,7 @@ const EquipmentForm = ({
         setIsLoading(false);
       }
     },
-    [form, userId, onClose, validateForm]
+    [form, userId, onClose, validateForm, createEquipment, updateEquipment]
   );
 
   // Classes CSS pour les statuts
@@ -486,19 +571,30 @@ const EquipmentForm = ({
   const equipmentCards = useMemo(
     () =>
       equipmentList.map((equipement, index) => (
-        <EquipmentCard
-          key={equipement}
-          equipement={equipement}
-          data={form.équipements[equipement]}
-          errors={errors}
-          handleChange={handleChange}
-          getCardClass={getCardClass}
-          getTitleClass={getTitleClass}
-          getBadgeClass={getBadgeClass}
-          getStatusClass={getStatusClass}
-          disabled={isLoading}
-          index={index}
-        />
+        <div key={equipement} className="relative">
+          <EquipmentCard
+            equipement={equipement}
+            data={form.équipements[equipement]}
+            errors={errors}
+            handleChange={handleChange}
+            getCardClass={getCardClass}
+            getTitleClass={getTitleClass}
+            getBadgeClass={getBadgeClass}
+            getStatusClass={getStatusClass}
+            disabled={isLoading}
+            index={index}
+          />
+          {/* Bouton de suppression pour chaque équipement */}
+          <button
+            type="button"
+            onClick={() => deleteEquipment(equipement)}
+            disabled={isLoading}
+            className="absolute top-2 right-2 p-1 text-white bg-red-600 rounded-full hover:bg-red-700 disabled:opacity-50"
+            aria-label={`Supprimer ${equipement}`}
+          >
+            <X size={16} />
+          </button>
+        </div>
       )),
     [
       equipmentList,
@@ -510,6 +606,7 @@ const EquipmentForm = ({
       getBadgeClass,
       getStatusClass,
       isLoading,
+      deleteEquipment,
     ]
   );
 

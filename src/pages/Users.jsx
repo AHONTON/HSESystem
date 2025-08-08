@@ -8,9 +8,9 @@ import {
   Eye,
   Users as UsersIcon,
 } from "lucide-react";
+import axios from "axios";
 import Card from "../components/UI/Card";
 import Modal from "../components/UI/Modal";
-import usersData from "../data/users.json";
 import SwalHelper from "../utils/SwalHelper";
 import EquipmentForm from "../components/UI/EquipmentForm";
 import NewUserForm from "../components/UI/NewUserForm";
@@ -27,9 +27,9 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
       department: "",
     }
   );
-
   const [errors, setErrors] = useState({});
 
+  // Validate form data before submission
   const validateForm = () => {
     const newErrors = {};
     if (!formData.name.trim()) newErrors.name = "Le nom complet est requis";
@@ -46,17 +46,27 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  // Handle form submission for editing a user
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
     if (mode === "edit") {
-      onSave({ ...user, ...formData });
-      SwalHelper.success(
-        "Modifié !",
-        "L'utilisateur a été modifié avec succès."
-      );
-      onClose();
+      // Update user: Send PUT request to update user data
+      try {
+        await axios.put(`/api/users/${user.id}`, formData);
+        onSave({ ...user, ...formData });
+        SwalHelper.success(
+          "Modifié !",
+          "L'utilisateur a été modifié avec succès."
+        );
+        onClose();
+      } catch (error) {
+        SwalHelper.error(
+          "Erreur",
+          "Une erreur s'est produite lors de la modification de l'utilisateur."
+        );
+      }
     }
   };
 
@@ -254,6 +264,7 @@ const UserForm = ({ user, mode, onSave, onClose }) => {
   );
 };
 
+// Utility function to get role badge styling
 const getRoleBadge = (role) => {
   const badges = {
     admin:
@@ -269,6 +280,7 @@ const getRoleBadge = (role) => {
   );
 };
 
+// Utility function to get role label
 const getRoleLabel = (role) => {
   const labels = {
     admin: "Administrateur",
@@ -279,7 +291,7 @@ const getRoleLabel = (role) => {
 };
 
 const Users = () => {
-  const [userList, setUserList] = useState(usersData.users || []);
+  const [userList, setUserList] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterRole, setFilterRole] = useState("all");
   const [showModal, setShowModal] = useState(false);
@@ -291,7 +303,23 @@ const Users = () => {
   const modalRef = useRef(null);
   const equipmentModalRef = useRef(null);
 
-  // Gestion des clics en dehors pour fermer les modales
+  // Fetch users: Load all users from API on component mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await axios.get("/api/users");
+        setUserList(response.data);
+      } catch (error) {
+        SwalHelper.error(
+          "Erreur",
+          "Une erreur s'est produite lors du chargement des utilisateurs."
+        );
+      }
+    };
+    fetchUsers();
+  }, []);
+
+  // Handle clicks outside modals to close them
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
@@ -316,6 +344,7 @@ const Users = () => {
     };
   }, [showModal, showEquipmentModal]);
 
+  // Filter users based on search term and role
   const filteredUsers = userList.filter((user) => {
     const matchesSearch =
       user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -324,50 +353,85 @@ const Users = () => {
     return matchesSearch && matchesRole;
   });
 
+  // Open equipment modal for a specific user
   const handleOpenEquipment = (user) => {
     setUserForEquipment(user);
     setShowEquipmentModal(true);
   };
 
+  // Open modal to add a new user
   const handleAddUser = () => {
     setModalMode("add");
     setShowModal(true);
   };
 
+  // Open modal to edit an existing user
   const handleEditUser = (user) => {
     setSelectedUser(user);
     setModalMode("edit");
     setShowModal(true);
   };
 
+  // Open modal to view user details
   const handleViewUser = (user) => {
     setSelectedUser(user);
     setModalMode("view");
     setShowModal(true);
   };
 
-  const handleDeleteUser = (user) => {
+  // Delete user: Send DELETE request to remove a user
+  const handleDeleteUser = async (user) => {
     SwalHelper.confirm(
       "Êtes-vous sûr ?",
       `Voulez-vous vraiment supprimer l'utilisateur ${user.name} ?`,
       "Oui, supprimer"
-    ).then((result) => {
+    ).then(async (result) => {
       if (result.isConfirmed) {
-        setUserList((prev) => prev.filter((u) => u.id !== user.id));
-        SwalHelper.success("Supprimé !", "L'utilisateur a été supprimé.");
+        try {
+          await axios.delete(`/api/users/${user.id}`);
+          setUserList((prev) => prev.filter((u) => u.id !== user.id));
+          SwalHelper.success("Supprimé !", "L'utilisateur a été supprimé.");
+        } catch (error) {
+          SwalHelper.error(
+            "Erreur",
+            "Une erreur s'est produite lors de la suppression de l'utilisateur."
+          );
+        }
       }
     });
   };
 
-  const handleSaveUser = (userData) => {
-    if (modalMode === "add") {
-      setUserList((prev) => [...prev, userData]);
-    } else if (modalMode === "edit") {
-      setUserList((prev) =>
-        prev.map((u) => (u.id === userData.id ? userData : u))
+  // Save user: Handle both adding and editing users via API
+  const handleSaveUser = async (userData) => {
+    try {
+      if (modalMode === "add") {
+        // Create user: Send POST request to add a new user
+        const response = await axios.post("/api/users", userData);
+        setUserList((prev) => [...prev, response.data]);
+        SwalHelper.success(
+          "Ajouté !",
+          "L'utilisateur a été ajouté avec succès."
+        );
+      } else if (modalMode === "edit") {
+        // Update user: Send PUT request to update an existing user
+        await axios.put(`/api/users/${userData.id}`, userData);
+        setUserList((prev) =>
+          prev.map((u) => (u.id === userData.id ? userData : u))
+        );
+        SwalHelper.success(
+          "Modifié !",
+          "L'utilisateur a été modifié avec succès."
+        );
+      }
+      setShowModal(false);
+    } catch (error) {
+      SwalHelper.error(
+        "Erreur",
+        `Une erreur s'est produite lors de ${
+          modalMode === "add" ? "l'ajout" : "la modification"
+        } de l'utilisateur.`
       );
     }
-    setShowModal(false);
   };
 
   return (
