@@ -1,109 +1,124 @@
-import React, { useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Search, Filter, Edit, Trash2, Eye } from 'lucide-react'
-import Card from '../components/UI/Card'
-import Modal from '../components/UI/Modal'
-import { users } from '../data/users.json'
-import Swal from 'sweetalert2'
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Plus, Search, Filter, Edit, Trash2, Eye } from "lucide-react";
+import Card from "../components/UI/Card";
+import Modal from "../components/UI/Modal";
+import { users } from "../data/users.json";
+import SwalHelper from "../utils/SwalHelper";
+import EquipmentForm from "../components/UI/EquipmentForm";
 
 const Users = () => {
-  const [userList, setUserList] = useState(users)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [filterRole, setFilterRole] = useState('all')
-  const [showModal, setShowModal] = useState(false)
-  const [selectedUser, setSelectedUser] = useState(null)
-  const [modalMode, setModalMode] = useState('add') // add, edit, view
+  const [userList, setUserList] = useState(users);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterRole, setFilterRole] = useState("all");
+  const [showModal, setShowModal] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [modalMode, setModalMode] = useState("add"); // add, edit, view
+  const [showEquipmentModal, setShowEquipmentModal] = useState(false);
+  const [userForEquipment, setUserForEquipment] = useState(null);
 
-  const filteredUsers = userList.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesRole = filterRole === 'all' || user.role === filterRole
-    return matchesSearch && matchesRole
-  })
+  const filteredUsers = userList.filter((user) => {
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesRole = filterRole === "all" || user.role === filterRole;
+    return matchesSearch && matchesRole;
+  });
+
+  const handleOpenEquipment = (user) => {
+    setUserForEquipment(user);
+    setShowEquipmentModal(true);
+  };
 
   const handleAddUser = () => {
-    setSelectedUser(null)
-    setModalMode('add')
-    setShowModal(true)
-  }
+    setSelectedUser(null);
+    setModalMode("add");
+    setShowModal(true);
+  };
 
   const handleEditUser = (user) => {
-    setSelectedUser(user)
-    setModalMode('edit')
-    setShowModal(true)
-  }
+    setSelectedUser(user);
+    setModalMode("edit");
+    setShowModal(true);
+  };
 
   const handleViewUser = (user) => {
-    setSelectedUser(user)
-    setModalMode('view')
-    setShowModal(true)
-  }
+    setSelectedUser(user);
+    setModalMode("view");
+    setShowModal(true);
+  };
 
   const handleDeleteUser = (user) => {
-    Swal.fire({
-      title: 'Êtes-vous sûr ?',
-      text: `Voulez-vous vraiment supprimer l'utilisateur ${user.name} ?`,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Oui, supprimer',
-      cancelButtonText: 'Annuler'
-    }).then((result) => {
+    SwalHelper.confirm(
+      "Êtes-vous sûr ?",
+      `Voulez-vous vraiment supprimer l'utilisateur ${user.name} ?`,
+      "Oui, supprimer"
+    ).then((result) => {
       if (result.isConfirmed) {
-        setUserList(prev => prev.filter(u => u.id !== user.id))
-        Swal.fire('Supprimé !', 'L\'utilisateur a été supprimé.', 'success')
+        setUserList((prev) => prev.filter((u) => u.id !== user.id));
+        SwalHelper.success("Supprimé !", "L'utilisateur a été supprimé.");
       }
-    })
-  }
+    });
+  };
 
   const getRoleBadge = (role) => {
     const badges = {
-      admin: 'badge badge-danger',
-      superviseur: 'badge badge-warning',
-      technicien: 'badge badge-success'
-    }
-    return badges[role] || 'badge'
-  }
+      admin: "badge badge-danger",
+      superviseur: "badge badge-warning",
+      technicien: "badge badge-success",
+    };
+    return badges[role] || "badge";
+  };
 
   const getRoleLabel = (role) => {
     const labels = {
-      admin: 'Administrateur',
-      superviseur: 'Superviseur',
-      technicien: 'Technicien'
-    }
-    return labels[role] || role
-  }
+      admin: "Administrateur",
+      superviseur: "Superviseur",
+      technicien: "Technicien",
+    };
+    return labels[role] || role;
+  };
 
   const UserForm = ({ user, mode, onSave, onClose }) => {
-    const [formData, setFormData] = useState(user || {
-      name: '',
-      email: '',
-      role: 'technicien',
-      phone: '',
-      position: '',
-      department: ''
-    })
+    const [formData, setFormData] = useState(
+      user || {
+        name: "",
+        email: "",
+        role: "technicien",
+        phone: "",
+        position: "",
+        department: "",
+      }
+    );
 
     const handleSubmit = (e) => {
-      e.preventDefault()
-      if (mode === 'add') {
+      e.preventDefault();
+      if (mode === "add") {
         const newUser = {
           ...formData,
           id: Date.now(),
-          joinDate: new Date().toISOString().split('T')[0],
-          avatar: `/placeholder.svg?height=40&width=40&query=${formData.name}`
-        }
-        setUserList(prev => [...prev, newUser])
-        Swal.fire('Ajouté !', 'L\'utilisateur a été ajouté avec succès.', 'success')
-      } else if (mode === 'edit') {
-        setUserList(prev => prev.map(u => u.id === user.id ? { ...u, ...formData } : u))
-        Swal.fire('Modifié !', 'L\'utilisateur a été modifié avec succès.', 'success')
+          joinDate: new Date().toISOString().split("T")[0],
+          avatar: `/placeholder.svg?height=40&width=40&query=${formData.name}`,
+        };
+        setUserList((prev) => [...prev, newUser]);
+        SwalHelper.success(
+          "Ajouté !",
+          "L'utilisateur a été ajouté avec succès."
+        );
+      } else if (mode === "edit") {
+        setUserList((prev) =>
+          prev.map((u) => (u.id === user.id ? { ...u, ...formData } : u))
+        );
+        SwalHelper.success(
+          "Modifié !",
+          "L'utilisateur a été modifié avec succès."
+        );
       }
-      onClose()
-    }
+      onClose();
+      onSave();
+    };
 
-    if (mode === 'view') {
+    if (mode === "view") {
       return (
         <div className="space-y-4">
           <div className="flex items-center space-x-4">
@@ -121,31 +136,39 @@ const Users = () => {
               </span>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Email
               </label>
-              <p className="mt-1 text-sm text-gray-900 dark:text-white">{user.email}</p>
+              <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                {user.email}
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Téléphone
               </label>
-              <p className="mt-1 text-sm text-gray-900 dark:text-white">{user.phone}</p>
+              <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                {user.phone}
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Poste
               </label>
-              <p className="mt-1 text-sm text-gray-900 dark:text-white">{user.position}</p>
+              <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                {user.position}
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                 Département
               </label>
-              <p className="mt-1 text-sm text-gray-900 dark:text-white">{user.department}</p>
+              <p className="mt-1 text-sm text-gray-900 dark:text-white">
+                {user.department}
+              </p>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -157,7 +180,7 @@ const Users = () => {
             </div>
           </div>
         </div>
-      )
+      );
     }
 
     return (
@@ -172,7 +195,9 @@ const Users = () => {
               required
               className="mt-1 input-field"
               value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, name: e.target.value })
+              }
             />
           </div>
           <div>
@@ -184,7 +209,9 @@ const Users = () => {
               required
               className="mt-1 input-field"
               value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, email: e.target.value })
+              }
             />
           </div>
         </div>
@@ -197,7 +224,9 @@ const Users = () => {
             <select
               className="mt-1 input-field"
               value={formData.role}
-              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, role: e.target.value })
+              }
             >
               <option value="technicien">Technicien</option>
               <option value="superviseur">Superviseur</option>
@@ -212,7 +241,9 @@ const Users = () => {
               type="tel"
               className="mt-1 input-field"
               value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, phone: e.target.value })
+              }
             />
           </div>
         </div>
@@ -226,7 +257,9 @@ const Users = () => {
               type="text"
               className="mt-1 input-field"
               value={formData.position}
-              onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, position: e.target.value })
+              }
             />
           </div>
           <div>
@@ -237,29 +270,24 @@ const Users = () => {
               type="text"
               className="mt-1 input-field"
               value={formData.department}
-              onChange={(e) => setFormData({ ...formData, department: e.target.value })}
+              onChange={(e) =>
+                setFormData({ ...formData, department: e.target.value })
+              }
             />
           </div>
         </div>
 
         <div className="flex justify-end pt-4 space-x-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn-secondary"
-          >
+          <button type="button" onClick={onClose} className="btn-secondary">
             Annuler
           </button>
-          <button
-            type="submit"
-            className="btn-primary"
-          >
-            {mode === 'add' ? 'Ajouter' : 'Modifier'}
+          <button type="submit" className="btn-primary">
+            {mode === "add" ? "Ajouter" : "Modifier"}
           </button>
         </div>
       </form>
-    )
-  }
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -294,7 +322,10 @@ const Users = () => {
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="flex-1">
             <div className="relative">
-              <Search className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2" size={20} />
+              <Search
+                className="absolute text-gray-400 transform -translate-y-1/2 left-3 top-1/2"
+                size={20}
+              />
               <input
                 type="text"
                 placeholder="Rechercher par nom ou email..."
@@ -388,6 +419,7 @@ const Users = () => {
                           className="p-1 text-primary-600 hover:text-primary-900"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
+                          title="Voir"
                         >
                           <Eye size={16} />
                         </motion.button>
@@ -396,6 +428,7 @@ const Users = () => {
                           className="p-1 text-warning-600 hover:text-warning-900"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
+                          title="Modifier"
                         >
                           <Edit size={16} />
                         </motion.button>
@@ -404,8 +437,19 @@ const Users = () => {
                           className="p-1 text-danger-600 hover:text-danger-900"
                           whileHover={{ scale: 1.1 }}
                           whileTap={{ scale: 0.9 }}
+                          title="Supprimer"
                         >
                           <Trash2 size={16} />
+                        </motion.button>
+
+                        <motion.button
+                          onClick={() => handleOpenEquipment(user)}
+                          className="px-3 py-1 font-medium text-white bg-green-900 rounded-md hover:bg-green-900"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          title="Gérer les équipements"
+                        >
+                          Équipement
                         </motion.button>
                       </div>
                     </td>
@@ -429,14 +473,16 @@ const Users = () => {
         )}
       </Card>
 
-      {/* Modal */}
+      {/* Modal utilisateur */}
       <Modal
         isOpen={showModal}
         onClose={() => setShowModal(false)}
         title={
-          modalMode === 'add' ? 'Nouvel utilisateur' :
-          modalMode === 'edit' ? 'Modifier l\'utilisateur' :
-          'Détails de l\'utilisateur'
+          modalMode === "add"
+            ? "Nouvel utilisateur"
+            : modalMode === "edit"
+            ? "Modifier l'utilisateur"
+            : "Détails de l'utilisateur"
         }
         size="lg"
       >
@@ -447,8 +493,21 @@ const Users = () => {
           onClose={() => setShowModal(false)}
         />
       </Modal>
-    </div>
-  )
-}
 
-export default Users
+      {/* Modal équipement */}
+      <Modal
+        isOpen={showEquipmentModal}
+        onClose={() => setShowEquipmentModal(false)}
+        title={`Équipements de ${userForEquipment?.name || ""}`}
+        size=""
+      >
+        <EquipmentForm
+          user={userForEquipment}
+          onClose={() => setShowEquipmentModal(false)}
+        />
+      </Modal>
+    </div>
+  );
+};
+
+export default Users;
